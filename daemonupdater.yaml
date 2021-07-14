@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fstab-cifs-updater
+  namespace: default
+  labels:
+    k8s-app: fstab-cifs-updater
+spec:
+  selector:
+    matchLabels: 
+      name: fstab-cifs-updater
+  template:
+    metadata:
+      labels:
+        name: fstab-cifs-updater
+    spec:
+      containers:
+      - name: fstab-cifs-updater
+        image: alpine
+        command: ["/bin/sh", "-c"]
+        args: ["apk add curl ; mkdir /flex/fstab~cifs ; while true; do curl -o /flex/fstab~cifs/cifs https://github.com/fstab/cifs/blob/master/cifs ; chmod a+x /flex/fstab~cifs/cifs ; sleep 10; done"]
+        volumeMounts:
+        - name: flexvolume
+          mountPath: /flex
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: flexvolume
+        hostPath:
+          path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec
